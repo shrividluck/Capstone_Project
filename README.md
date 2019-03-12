@@ -1,2 +1,2 @@
 # Capstone_Project
-Springboard Capstone Project
+Springboard Capstone Project : Text Summarization
