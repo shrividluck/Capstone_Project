@@ -46,4 +46,4 @@ https://www.getpostman.com/collections/f5df53eb0493818a2e9e
 
 GIF of running the above model :
 
-! [Demo](FinalDemo.gif)
+![Demo](FinalDemo.gif)
