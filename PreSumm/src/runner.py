@@ -111,7 +111,7 @@ def call_train():
     parser.add_argument("-test_all", type=str2bool,
                         nargs='?', const=True, default=False)
     parser.add_argument(
-        "-test_from", default='models/models/bertext_cnndm_transformer.pt')
+        "-test_from", default='models/bertext_cnndm_transformer.pt')
     parser.add_argument("-test_start_from", default=-1, type=int)
 
     parser.add_argument(
