@@ -32,7 +32,7 @@ def call_train():
     parser.add_argument("-bert_data_path",
                         default='bert_data/bert_data_cnndm_final/cnndm')
     parser.add_argument("-model_path", default='models/')
-    parser.add_argument("-result_path", default='logs/abs_bert_cnndm')
+    parser.add_argument("-result_path", default='logs/ext_bert_cnndm')
     parser.add_argument("-temp_dir", default='./temp')
     parser.add_argument("-text_src", default='raw_data/temp.raw_src')
     parser.add_argument("-text_tgt", default='')

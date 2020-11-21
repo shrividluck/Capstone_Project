@@ -6,6 +6,7 @@ from flask import Flask, request
 from runner import call_train
 from flask import make_response
 import json
+import os
 
 app = Flask(__name__)
 
@@ -25,14 +26,15 @@ def call_output():
     if not sentence:
         sentence = ''
     print(sentence)
-    with open('/home/ubuntu/Capstone_Project/PreSumm/raw_data/temp.raw_src', 'w') as f:
-        f.write(sentence)
+    with open('raw_data/temp.raw_src', 'w') as f:
+        f.write(sentence+'\n')
+
     call_train()
     text = ''
-    with open('/home/ubuntu/Capstone_Project/PreSumm/logs/abs_bert_cnndm_step-1.candidate', 'r') as f:
+    with open('logs/ext_bert_cnndm_step-1.candidate', 'r+') as f:
         text = f.read()
     print("Success!!")
-    return text
+    return text if text else 'Something went wrong :-('
 
 
 @app.route('/hello')
