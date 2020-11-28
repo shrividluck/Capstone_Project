@@ -1,0 +1,7 @@
+FROM nvcr.io/nvidia/pytorch:20.11-py3
+
+RUN pip install -U pyrouge tqdm tensorboardx pytorch-transformers
+RUN git clone https://github.com/shrividluck/Capstone_Project
+WORKDIR PreSumm/
+CMD ["src/waitress_server.py"]
+ENTRYPOINT ["python3"]

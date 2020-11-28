@@ -276,3 +276,14 @@ def test_text_ext(args):
     stats = trainer.test(test_iter, -1)
     logger.info('Coming here:3')
     return stats
+
+
+def test_text_ext_from_string(args, model, trainer, string1):
+    model.eval()
+    logger.info('Coming here:3')
+    device = "cpu" if args.visible_gpus == '-1' else "cuda"
+    test_iter = data_loader.load_text_from_string(
+        args, string1, device)
+    stats = trainer.test1(test_iter, -1)
+    logger.info('Coming here:4')
+    return stats

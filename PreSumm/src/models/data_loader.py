@@ -9,7 +9,6 @@ from tqdm import tqdm
 from others.logging import logger
 
 
-
 class Batch(object):
     def _pad(self, data, pad_id, width=-1):
         if (width == -1):
@@ -34,7 +33,6 @@ class Batch(object):
             mask_src = 1 - (src == 0).float()
             mask_tgt = 1 - (tgt == 0).float()
 
-
             clss = torch.tensor(self._pad(pre_clss, -1))
             src_sent_labels = torch.tensor(self._pad(pre_src_sent_labels, 0))
             mask_cls = 1 - (clss == -1).float()
@@ -43,13 +41,11 @@ class Batch(object):
             setattr(self, 'mask_cls', mask_cls.to(device))
             setattr(self, 'src_sent_labels', src_sent_labels.to(device))
 
-
             setattr(self, 'src', src.to(device))
             setattr(self, 'tgt', tgt.to(device))
             setattr(self, 'segs', segs.to(device))
             setattr(self, 'mask_src', mask_src.to(device))
             setattr(self, 'mask_tgt', mask_tgt.to(device))
-
 
             if (is_test):
                 src_str = [x[-2] for x in data]
@@ -59,8 +55,6 @@ class Batch(object):
 
     def __len__(self):
         return self.batch_size
-
-
 
 
 def load_dataset(args, corpus_type, shuffle):
@@ -82,7 +76,8 @@ def load_dataset(args, corpus_type, shuffle):
         return dataset
 
     # Sort the glob output by file name (by increasing indexes).
-    pts = sorted(glob.glob(args.bert_data_path + '.' + corpus_type + '.[0-9]*.pt'))
+    pts = sorted(glob.glob(args.bert_data_path +
+                           '.' + corpus_type + '.[0-9]*.pt'))
     if pts:
         if (shuffle):
             random.shuffle(pts)
@@ -100,15 +95,14 @@ def abs_batch_size_fn(new, count, max_ndocs_in_batch=6):
     global max_n_sents, max_n_tokens, max_size
     if count == 1:
         max_size = 0
-        max_n_sents=0
-        max_n_tokens=0
+        max_n_sents = 0
+        max_n_tokens = 0
     max_n_sents = max(max_n_sents, len(tgt))
     max_size = max(max_size, max_n_sents)
     src_elements = count * max_size
     if (count > max_ndocs_in_batch):
         return src_elements + 1e3
     return src_elements
-
 
 
 def ext_batch_size_fn(new, count):
@@ -145,7 +139,6 @@ class Dataloader(object):
                 yield batch
             self.cur_iter = self._next_dataset_iterator(dataset_iter)
 
-
     def _next_dataset_iterator(self, dataset_iter):
         try:
             # Drop the current dataset for decreasing memory
@@ -159,9 +152,9 @@ class Dataloader(object):
         except StopIteration:
             return None
 
-        return DataIterator(args = self.args,
-            dataset=self.cur_dataset,  batch_size=self.batch_size,
-            device=self.device, shuffle=self.shuffle, is_test=self.is_test)
+        return DataIterator(args=self.args,
+                            dataset=self.cur_dataset,  batch_size=self.batch_size,
+                            device=self.device, shuffle=self.shuffle, is_test=self.is_test)
 
 
 class DataIterator(object):
@@ -187,18 +180,13 @@ class DataIterator(object):
         xs = self.dataset
         return xs
 
-
-
-
-
-
     def preprocess(self, ex, is_test):
         src = ex['src']
         tgt = ex['tgt'][:self.args.max_tgt_len][:-1]+[2]
         src_sent_labels = ex['src_sent_labels']
         segs = ex['segs']
         if(not self.args.use_interval):
-            segs=[0]*len(segs)
+            segs = [0]*len(segs)
         clss = ex['clss']
         src_txt = ex['src_txt']
         tgt_txt = ex['tgt_txt']
@@ -211,8 +199,6 @@ class DataIterator(object):
         clss = clss[:max_sent_id]
         # src_txt = src_txt[:max_sent_id]
 
-
-
         if(is_test):
             return src, tgt, segs, clss, src_sent_labels, src_txt, tgt_txt
         else:
@@ -221,19 +207,21 @@ class DataIterator(object):
     def batch_buffer(self, data, batch_size):
         minibatch, size_so_far = [], 0
         for ex in data:
-            if(len(ex['src'])==0):
+            if(len(ex['src']) == 0):
                 continue
             ex = self.preprocess(ex, self.is_test)
             if(ex is None):
                 continue
             minibatch.append(ex)
-            size_so_far = self.batch_size_fn(ex, len(minibatch), self.args.max_ndocs_in_batch)
+            size_so_far = self.batch_size_fn(
+                ex, len(minibatch), self.args.max_ndocs_in_batch)
             if size_so_far == batch_size:
                 yield minibatch
                 minibatch, size_so_far = [], 0
             elif size_so_far > batch_size:
                 yield minibatch[:-1]
-                minibatch, size_so_far = minibatch[-1:], self.batch_size_fn(ex, len(minibatch), self.args.max_ndocs_in_batch)
+                minibatch, size_so_far = minibatch[-1:], self.batch_size_fn(
+                    ex, len(minibatch), self.args.max_ndocs_in_batch)
         if minibatch:
             yield minibatch
 
@@ -242,13 +230,15 @@ class DataIterator(object):
         minibatch, size_so_far = [], 0
         for ex in data:
             minibatch.append(ex)
-            size_so_far = self.batch_size_fn(ex, len(minibatch), self.args.max_ndocs_in_batch)
+            size_so_far = self.batch_size_fn(
+                ex, len(minibatch), self.args.max_ndocs_in_batch)
             if size_so_far == batch_size:
                 yield minibatch
                 minibatch, size_so_far = [], 0
             elif size_so_far > batch_size:
                 yield minibatch[:-1]
-                minibatch, size_so_far = minibatch[-1:], self.batch_size_fn(ex, len(minibatch), self.args.max_ndocs_in_batch)
+                minibatch, size_so_far = minibatch[-1:], self.batch_size_fn(
+                    ex, len(minibatch), self.args.max_ndocs_in_batch)
         if minibatch:
             yield minibatch
 
@@ -265,12 +255,11 @@ class DataIterator(object):
 
             p_batch = self.batch(p_batch, self.batch_size)
 
-
             p_batch = list(p_batch)
             if (self.shuffle):
                 random.shuffle(p_batch)
             for b in p_batch:
-                if(len(b)==0):
+                if(len(b) == 0):
                     continue
                 yield b
 
@@ -289,23 +278,25 @@ class DataIterator(object):
             return
 
 
-
 def load_text(args, source_fp, target_fp, device):
     from others.tokenization import BertTokenizer
-    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
+    tokenizer = BertTokenizer.from_pretrained(
+        'bert-base-uncased', do_lower_case=True)
     sep_vid = tokenizer.vocab['[SEP]']
     cls_vid = tokenizer.vocab['[CLS]']
     n_lines = len(open(source_fp).read().split('\n'))
 
     def _process_src(raw):
+        #    logger.info("%s" % raw)
         raw = raw.strip().lower()
-        raw = raw.replace('[cls]','[CLS]').replace('[sep]','[SEP]')
+        raw = raw.replace('[cls]', '[CLS]').replace('[sep]', '[SEP]')
         src_subtokens = tokenizer.tokenize(raw)
         src_subtokens = ['[CLS]'] + src_subtokens + ['[SEP]']
         src_subtoken_idxs = tokenizer.convert_tokens_to_ids(src_subtokens)
         src_subtoken_idxs = src_subtoken_idxs[:-1][:args.max_pos]
         src_subtoken_idxs[-1] = sep_vid
-        _segs = [-1] + [i for i, t in enumerate(src_subtoken_idxs) if t == sep_vid]
+        _segs = [-1] + \
+            [i for i, t in enumerate(src_subtoken_idxs) if t == sep_vid]
         segs = [_segs[i] - _segs[i - 1] for i in range(1, len(_segs))]
         segments_ids = []
         segs = segs[:args.max_pos]
@@ -317,30 +308,32 @@ def load_text(args, source_fp, target_fp, device):
 
         src = torch.tensor(src_subtoken_idxs)[None, :].to(device)
         mask_src = (1 - (src == 0).float()).to(device)
-        cls_ids = [[i for i, t in enumerate(src_subtoken_idxs) if t == cls_vid]]
+        cls_ids = [[i for i, t in enumerate(
+            src_subtoken_idxs) if t == cls_vid]]
         clss = torch.tensor(cls_ids).to(device)
         mask_cls = 1 - (clss == -1).float()
         clss[clss == -1] = 0
 
         return src, mask_src, segments_ids, clss, mask_cls
 
-    if(target_fp==''):
+    if(target_fp == ''):
         with open(source_fp) as source:
             for x in tqdm(source, total=n_lines):
                 src, mask_src, segments_ids, clss, mask_cls = _process_src(x)
                 segs = torch.tensor(segments_ids)[None, :].to(device)
                 batch = Batch()
-                batch.src  = src
-                batch.tgt  = None
-                batch.mask_src  = mask_src
-                batch.mask_tgt  = None
-                batch.segs  = segs
-                batch.src_str  =  [[sent.replace('[SEP]','').strip() for sent in x.split('[CLS]')]]
-                batch.tgt_str  = ['']
-                batch.clss  = clss
-                batch.mask_cls  = mask_cls
+                batch.src = src
+                batch.tgt = None
+                batch.mask_src = mask_src
+                batch.mask_tgt = None
+                batch.segs = segs
+                batch.src_str = [
+                    [sent.replace('[SEP]', '').strip() for sent in x.split('[CLS]')]]
+                batch.tgt_str = ['']
+                batch.clss = clss
+                batch.mask_cls = mask_cls
 
-                batch.batch_size=1
+                batch.batch_size = 1
                 yield batch
     else:
         with open(source_fp) as source, open(target_fp) as target:
@@ -351,14 +344,77 @@ def load_text(args, source_fp, target_fp, device):
                 src, mask_src, segments_ids, clss, mask_cls = _process_src(x)
                 segs = torch.tensor(segments_ids)[None, :].to(device)
                 batch = Batch()
-                batch.src  = src
-                batch.tgt  = None
-                batch.mask_src  = mask_src
-                batch.mask_tgt  = None
-                batch.segs  = segs
-                batch.src_str  =  [[sent.replace('[SEP]','').strip() for sent in x.split('[CLS]')]]
-                batch.tgt_str  = [y]
-                batch.clss  = clss
-                batch.mask_cls  = mask_cls
-                batch.batch_size=1
+                batch.src = src
+                batch.tgt = None
+                batch.mask_src = mask_src
+                batch.mask_tgt = None
+                batch.segs = segs
+                batch.src_str = [
+                    [sent.replace('[SEP]', '').strip() for sent in x.split('[CLS]')]]
+                batch.tgt_str = [y]
+                batch.clss = clss
+                batch.mask_cls = mask_cls
+                batch.batch_size = 1
                 yield batch
+
+
+def load_text_from_string(args, string1, device, target_fp=''):
+    from others.tokenization import BertTokenizer
+    tokenizer = BertTokenizer.from_pretrained(
+        'bert-base-uncased', do_lower_case=True)
+    if '[CLS]' not in string1:
+        string1 = string1.replace('.', '. [CLS] [SEP]')
+    sep_vid = tokenizer.vocab['[SEP]']
+    cls_vid = tokenizer.vocab['[CLS]']
+    n_lines = len(string1.split('\n'))
+
+    def _process_src(raw):
+        raw = raw.strip().lower()
+        raw = raw.replace('[cls]', '[CLS]').replace('[sep]', '[SEP]')
+ #       logger.info("%s" % raw)
+        src_subtokens = tokenizer.tokenize(raw)
+        src_subtokens = ['[CLS]'] + src_subtokens + ['[SEP]']
+        src_subtoken_idxs = tokenizer.convert_tokens_to_ids(src_subtokens)
+        src_subtoken_idxs = src_subtoken_idxs[:-1][:args.max_pos]
+        src_subtoken_idxs[-1] = sep_vid
+        _segs = [-1] + \
+            [i for i, t in enumerate(src_subtoken_idxs) if t == sep_vid]
+        segs = [_segs[i] - _segs[i - 1] for i in range(1, len(_segs))]
+        segments_ids = []
+        segs = segs[:args.max_pos]
+        for i, s in enumerate(segs):
+            if (i % 2 == 0):
+                segments_ids += s * [0]
+            else:
+                segments_ids += s * [1]
+
+        src = torch.tensor(src_subtoken_idxs)[None, :].to(device)
+        mask_src = (1 - (src == 0).float()).to(device)
+        cls_ids = [[i for i, t in enumerate(
+            src_subtoken_idxs) if t == cls_vid]]
+        clss = torch.tensor(cls_ids).to(device)
+        mask_cls = 1 - (clss == -1).float()
+        clss[clss == -1] = 0
+
+        return src, mask_src, segments_ids, clss, mask_cls
+
+    for x in tqdm(string1.split('/n'), total=n_lines):
+        src, mask_src, segments_ids, clss, mask_cls = _process_src(x)
+        segs = torch.tensor(segments_ids)[None, :].to(device)
+        batch = Batch()
+        batch.src = src
+        batch.tgt = None
+        batch.mask_src = mask_src
+        batch.mask_tgt = None
+        batch.segs = segs
+        batch.src_str = [
+            [sent.replace('[SEP]', '').strip() for sent in x.split('[CLS]')]]
+        batch.tgt_str = ['']
+        batch.clss = clss
+ #       logger.info('Coming here:3a')
+ #       logger.info('%s' % string1)
+ #       logger.info('%s' % clss)
+        batch.mask_cls = mask_cls
+
+        batch.batch_size = 1
+        yield batch

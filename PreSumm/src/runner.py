@@ -5,9 +5,12 @@
 from __future__ import division
 import argparse
 import os
-from others.logging import init_logger
+from others.logging import init_logger, logger
 from train_abstractive import validate_abs, train_abs, baseline, test_abs, test_text_abs
 from train_extractive import train_ext, validate_ext, test_ext, test_text_ext
+from models.model_builder import ExtSummarizer
+import torch
+from models.trainer_ext import build_trainer
 
 model_flags = ['hidden_size', 'ff_size', 'heads', 'emb_size', 'enc_layers', 'enc_hidden_size', 'enc_ff_size',
                'dec_layers', 'dec_hidden_size', 'dec_ff_size', 'encoder', 'ff_actv', 'use_interval']
@@ -127,7 +130,24 @@ def call_train():
     os.environ["CUDA_VISIBLE_DEVICES"] = args.visible_gpus
 
     init_logger(args.log_file)
-    test_text_ext(args)
+    logger.info('Loading checkpoint from %s' % args.test_from)
+    checkpoint = torch.load(
+        args.test_from, map_location=lambda storage, loc: storage)
+    opt = vars(checkpoint['opt'])
+    for k in opt.keys():
+        if (k in model_flags):
+            setattr(args, k, opt[k])
+
+    device = "cpu" if args.visible_gpus == '-1' else "cuda"
+    device_id = 0 if device == "cuda" else -1
+
+    logger.info('Coming here:1')
+    model = ExtSummarizer(args, device, checkpoint)
+    model.eval()
+    trainer = build_trainer(args, device_id, model, None)
+    logger.info('Coming here:2')
+    logger.info('args: %s' % args)
+    return model, args, trainer
 
 
 if __name__ == '__main__':

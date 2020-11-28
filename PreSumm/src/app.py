@@ -7,8 +7,10 @@ from runner import call_train
 from flask import make_response
 import json
 import os
+from train_extractive import train_ext, validate_ext, test_ext, test_text_ext, test_text_ext_from_string
 
 app = Flask(__name__)
+model, args, trainer = call_train()
 
 
 @app.route('/')
@@ -26,13 +28,9 @@ def call_output():
     if not sentence:
         sentence = ''
     print(sentence)
-    with open('raw_data/temp.raw_src', 'w') as f:
-        f.write(sentence+'\n')
 
-    call_train()
-    text = ''
-    with open('logs/ext_bert_cnndm_step-1.candidate', 'r+') as f:
-        text = f.read()
+    text = test_text_ext_from_string(args, model, trainer, sentence)
+
     print("Success!!")
     return text if text else 'Something went wrong :-('
 
