@@ -1,7 +1,11 @@
 FROM nvcr.io/nvidia/pytorch:20.11-py3
 
-RUN pip install -U pyrouge tqdm tensorboardx pytorch-transformers
+RUN apt update && apt install -y unzip
+RUN pip install -U pyrouge tqdm tensorboardx pytorch-transformers waitress
 RUN git clone https://github.com/shrividluck/Capstone_Project
-WORKDIR PreSumm/
+WORKDIR Capstone_Project/PreSumm/
+RUN git clone https://github.com/chentinghao/download_google_drive.git 
+RUN python3 download_google_drive/download_gdrive.py 1kKWoV0QCbeIuFt85beQgJ4v0lujaXobJ models/bertext_cnndm_transformer.zip
+RUN unzip models/bertext_cnndm_transformer.zip -d models/
 CMD ["src/waitress_server.py"]
 ENTRYPOINT ["python3"]
