@@ -14,7 +14,7 @@ Steps to install and run the project:
 
 
 Requirements (minimum versions): 
-
+  Tesla K80 (GPU)
   multiprocess==0.70.9
   numpy==1.17.2
   pyrouge==0.1.3
